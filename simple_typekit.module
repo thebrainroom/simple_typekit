@@ -1,0 +1,69 @@
+<?php
+
+/**
+ * Implements preprocess page.
+ */
+function simple_typekit_preprocess_page(&$vars, $hook) {
+
+  $typekit_kit_id = variable_get('typekit_kit_id', '');
+  $typekit_timeout = variable_get('typekit_timeout', '');
+
+  // Adds typekit embed to html head.
+  if(!empty($typekit_kit_id)) {
+    drupal_add_html_head(array(
+      "#type" => "markup",
+      "#markup" => '<script>
+        (function(d) {
+          var config = {
+            kitId: "'.$typekit_kit_id.'",
+            scriptTimeout: '.$typekit_timeout.'
+          },
+          h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src="//use.typekit.net/"+config.kitId+".js";tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
+        })(document);
+      </script>'
+    ), "typekit");
+  }
+
+}
+
+/**
+ * Implements hook_menu().
+ * Displays link on configuration page
+ */
+function simple_typekit_menu() {
+
+  $items = array();
+  
+  $items['admin/config/media/typekit'] = array(
+    'title' => 'Simple Typekit',
+    'description' => 'Configure kit ID and timeout for Typekit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('simple_typekit_form'),
+    'access arguments' => array('administer site configuration'),
+  );
+ 
+  return $items;
+}
+
+/**
+ * Implements hook_form().
+ * Admin form to configure kit id
+ */
+function simple_typekit_form($form, &$form_state) {
+  
+  $form['typekit_kit_id'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Typekit Kit ID'),
+    '#required' => TRUE,
+    '#default_value' => variable_get('typekit_kit_id', ''),
+  );
+
+  $form['typekit_timeout'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Typekit Timeout'),
+    '#required' => FALSE,
+    '#default_value' => variable_get('typekit_timeout', 3000),
+  );
+ 
+  return system_settings_form($form);
+}
